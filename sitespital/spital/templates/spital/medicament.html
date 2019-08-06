@@ -1,0 +1,125 @@
+{% extends 'spital/layout.html' %}
+
+{% block content %}
+    <br>
+    {% if request.user.is_superuser %}
+        <button id="addMedicamentButton" type="button" class="btn btn-primary">Adauga</button>
+        <button id="removeMedicamentButton" type="button" class="btn btn-danger">Sterge</button>
+        <br>
+        {% if form.errors %}
+            {% for field in form %}
+                {% for error in field.errors %}
+                    <div class="alert alert-danger">
+                        <strong>{{ error|escape }}</strong>
+                    </div>
+                {% endfor %}
+            {% endfor %}
+            {% for error in form.non_field_errors %}
+                <div class="alert alert-danger">
+                    <strong>{{ error|escape }}</strong>
+                </div>
+            {% endfor %}
+        {% endif %}
+        <br>
+        <form id="addMedicament" action="{% url 'medicament' %}" method="post">
+            {% csrf_token %}
+            <div class="form-group">
+                {% for field in form %}
+                    <div class="form-group">
+                        {{ field.label_tag }}
+                        {{ field }}
+                    </div>
+                {% endfor %}
+            </div>
+            <button id="submitMedicament" type="submit" class="btn btn-primary">Trimite</button>
+            <button id="closeform" type="button" class="btn btn-dark">Inchide</button>
+        </form>
+    {% endif %}
+    <br>
+    <table class="table">
+        <thead class="thead-dark">
+        <tr>
+            <th scope="col">#</th>
+            <th scope="col">Denumire</th>
+            {% if request.user.is_superuser %}
+                <th scope="col">Selecteaza</th>
+                <th scope="col">Modificare</th>
+            {% endif %}
+        </tr>
+        </thead>
+        <tbody>
+        {% for medicament in medicamente %}
+            <tr id="{{ medicament.medicamentid }}">
+                <th scope="row">{{ forloop.counter }}</th>
+                <td>{{ medicament.denumire }}</td>
+                {% if request.user.is_superuser %}
+                    <td><input type="checkbox"/></td>
+                    <td><a href="/modificaMedicament/{{ medicament.medicamentid }}">Modifica</a></td>
+                {% endif %}
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+    <br>
+    <div class="pagination">
+    <span class="step-links">
+
+        {% if medicamente.has_previous %}
+            <button type="button" class="btn btn-outline-dark"><a href="?page=1">&laquo; Prima pagina</a></button>
+            <button type="button" class="btn btn-outline-dark"><a
+                    href="?page={{ medicamente.previous_page_number }}">Inapoi</a></button>
+        {% endif %}
+
+        <span class="current">
+            Pagina {{ medicamente.number }} din {{ medicamente.paginator.num_pages }}.
+        </span>
+
+        {% if medicamente.has_next %}
+            <button type="button" class="btn btn-outline-dark"><a
+                    href="?page={{ medicamente.next_page_number }}">Inainte</a></button>
+            <button type="button" class="btn btn-outline-dark"><a href="?page={{ medicamente.paginator.num_pages }}">Ultima pagina &raquo;</a></button>
+        {% endif %}
+    </span>
+    </div>
+
+    <script>
+    jQuery('#medicament').addClass('active');
+    $("#addMedicamentButton").click(
+            function () {
+                $("#addMedicament").show(500);
+            }
+        );
+        $("#closeform").click(
+            function () {
+                $("#addMedicament").hide(500);
+            }
+        );
+        {#Apasand pe rand bifeaza casuta#}
+        $(document).ready(function () {
+            $('.table tr').click(function (event) {
+                if (event.target.type !== 'checkbox') {
+                    $(':checkbox', this).trigger('click');
+                }
+            });
+        });
+        $('#removeMedicamentButton').click(function () {
+            const lista = [];
+            const Url = 'http://127.0.0.1:8000/removeMedicament';
+            $('.table tr').filter(':has(:checkbox:checked)').each(function () {
+                lista.push(this.id);
+                console.log(lista);
+            });
+            const data = {
+                csrfmiddlewaretoken: document.getElementsByName('csrfmiddlewaretoken')[0].value,
+                listaID: lista,
+            };
+            if (lista.length > 0) {
+                $.post(Url, data, function (data, status) {
+                    console.log('${data} and status is ${status}');
+                    window.location.replace("");
+                });
+            }
+        });
+
+    </script>
+{% endblock %}

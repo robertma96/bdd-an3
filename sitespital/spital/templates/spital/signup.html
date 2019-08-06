@@ -1,0 +1,39 @@
+{% extends 'spital/layout.html' %}
+{% block content %}
+    <br>
+    {% if message %}
+        <div class="alert alert-success">
+            <strong>{{ message }}</strong>
+        </div>
+    {% endif %}
+    {% if not user.is_authenticated %}
+        {% if form.errors %}
+            {% for field in form %}
+                {% for error in field.errors %}
+                    <div class="alert alert-danger">
+                        <strong>{{ error|escape }}</strong>
+                    </div>
+                {% endfor %}
+            {% endfor %}
+            {% for error in form.non_field_errors %}
+                <div class="alert alert-danger">
+                    <strong>{{ error|escape }}</strong>
+                </div>
+            {% endfor %}
+        {% endif %}
+        <br>
+        <form method="post">
+            {% csrf_token %}
+            <div class="form-group">
+                {% for field in form %}
+                    <div class="form-group">
+                        {{ field.label_tag }}
+                        {{ field }}
+                        <small class="form-text line-break">{{ field.help_text }}</small>
+                    </div>
+                {% endfor %}
+            </div>
+            <button type="submit" class="btn btn-primary">Inregistrare</button>
+        </form>
+    {% endif %}
+{% endblock %}

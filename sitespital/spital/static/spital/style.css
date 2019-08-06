@@ -1,0 +1,53 @@
+body {
+    background: linear-gradient(
+            rgba(0, 0, 0, 0.6),
+            rgba(0, 0, 0, 0.6)
+    ),
+    url('images/background2.jpg') no-repeat center center fixed;
+    -webkit-background-size: cover;
+    -moz-background-size: cover;
+    -o-background-size: cover;
+    background-size: cover;
+}
+
+
+p, h1, h2, h3, h4, h5, h6, label, span {
+    color: #ddd !important;
+}
+
+.form-text {
+    color: #ddd !important;
+}
+
+tbody {
+    background: #212529;
+    color: #ddd;
+}
+
+th, td {
+    border-top: 1px solid #1a1a1a !important;
+}
+
+a {
+    color: #ddd !important;
+    text-decoration: underline;
+}
+
+#addMedic, #addPacient, #addConsultatie, #addMedicament {
+    display: none;
+}
+
+.table tr:hover {
+    background: #404040;
+    transition: .4s ease;
+}
+
+
+.textdinnavbar {
+    margin-bottom: 0;
+    margin-top: 0;
+}
+
+.line-break {
+    white-space: pre-line;
+}

@@ -1,0 +1,135 @@
+{% extends 'spital/layout.html' %}
+
+{% block content %}
+    <br>
+    {% if request.user.is_superuser %}
+        <button id="addMedicButton" type="button" class="btn btn-primary">Adauga</button>
+        <button id="removeMedicButton" type="button" class="btn btn-danger">Sterge</button>
+        <br>
+        {% if form.errors %}
+            {% for field in form %}
+                {% for error in field.errors %}
+                    <div class="alert alert-danger">
+                        <strong>{{ error|escape }}</strong>
+                    </div>
+                {% endfor %}
+            {% endfor %}
+            {% for error in form.non_field_errors %}
+                <div class="alert alert-danger">
+                    <strong>{{ error|escape }}</strong>
+                </div>
+            {% endfor %}
+        {% endif %}
+        <br>
+        <form id="addMedic" action="{% url 'medic' %}" method="post">
+            {% csrf_token %}
+            <div class="form-group">
+                {% for field in form %}
+                    <div class="form-group">
+                        {{ field.label_tag }}
+                        {{ field }}
+                    </div>
+                {% endfor %}
+            </div>
+            <button id="submitMedic" type="submit" class="btn btn-primary">Trimite</button>
+            <button id="closeform" type="button" class="btn btn-dark">Inchide</button>
+        </form>
+    {% endif %}
+    <br>
+    <table class="table">
+        <thead class="thead-dark">
+        <tr>
+            <th scope="col">#</th>
+            <th scope="col">Nume</th>
+            <th scope="col">Prenume</th>
+            <th scope="col">Specializare</th>
+            {% if request.user.is_superuser %}
+                <th scope="col">Selecteaza</th>
+            {% endif %}
+            {% if request.user.is_superuser %}
+                <th scope="col">Modificare</th>
+            {% endif %}
+        </tr>
+        </thead>
+        <tbody>
+{#        Aici se parcurge fiecare obiect din tabela Medic și se afișeaza corespunzător#}
+        {% for medic in medici %}
+            <tr id="{{ medic.medicid }}">
+                <th scope="row">{{ forloop.counter }}</th>
+                <td>{{ medic.numemedic }}</td>
+                <td>{{ medic.prenumemedic }}</td>
+                <td>{{ medic.specializare }}</td>
+                {% if request.user.is_superuser %}
+                    <td><input type="checkbox"/></td>
+                {% endif %}
+                {% if request.user.is_superuser %}
+                    <td><a href="/modificaMedic/{{ medic.medicid }}">Modifica</a></td>
+                {% endif %}
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+    <br>
+    <div class="pagination">
+    <span class="step-links">
+
+        {% if medici.has_previous %}
+            <button type="button" class="btn btn-outline-dark"><a href="?page=1">&laquo; Prima pagina</a></button>
+            <button type="button" class="btn btn-outline-dark"><a
+                    href="?page={{ medici.previous_page_number }}">Inapoi</a></button>
+        {% endif %}
+
+        <span class="current">
+            Pagina {{ medici.number }} din {{ medici.paginator.num_pages }}.
+        </span>
+
+        {% if medici.has_next %}
+            <button type="button" class="btn btn-outline-dark"><a href="?page={{ medici.next_page_number }}">Inainte</a></button>
+            <button type="button" class="btn btn-outline-dark"><a href="?page={{ medici.paginator.num_pages }}">Ultima pagina &raquo;</a></button>
+        {% endif %}
+    </span>
+    </div>
+
+
+    <script>
+        jQuery('#medic').addClass('active');
+        $("#addMedicButton").click(
+            function () {
+                $("#addMedic").show(500);
+            }
+        );
+        $("#closeform").click(
+            function () {
+                $("#addMedic").hide(500);
+            }
+        );
+        {#Apasand pe rand bifeaza casuta#}
+        $(document).ready(function () {
+            $('.table tr').click(function (event) {
+                if (event.target.type !== 'checkbox') {
+                    $(':checkbox', this).trigger('click');
+                }
+            });
+        });
+
+        $('#removeMedicButton').click(function () {
+            const lista = [];
+            const Url = 'http://127.0.0.1:8000/removeMedic';
+            $('.table tr').filter(':has(:checkbox:checked)').each(function () {
+                lista.push(this.id);
+                console.log(lista);
+            });
+            const data = {
+                csrfmiddlewaretoken: document.getElementsByName('csrfmiddlewaretoken')[0].value,
+                listaID: lista,
+            };
+            if (lista.length > 0) {
+                $.post(Url, data, function (data, status) {
+                    window.location.replace("");
+                });
+            }
+        });
+    </script>
+
+
+{% endblock %}

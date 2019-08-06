@@ -1,0 +1,25 @@
+{% extends 'spital/layout.html' %}
+
+{% block content %}
+    <br>
+    {% if message %}
+        <div class="alert alert-danger" role="alert">
+            {{ message }}
+            <a href="../medicament">Inapoi</a>
+        </div>
+    {% endif %}
+    {% if request.user.is_superuser %}
+        <form action="{{ medicament_selectat.medicamentid }}" method="post">
+            {% csrf_token %}
+            <div class="form-group">
+                {% for field in form %}
+                    <div class="form-group">
+                        <label>{{ field.label_tag }}</label>
+                        {{ field }}
+                    </div>
+                {% endfor %}
+            </div>
+            <button id="submitMedicament" type="submit" class="btn btn-primary">Submit</button>
+        </form>
+    {% endif %}
+{% endblock %}

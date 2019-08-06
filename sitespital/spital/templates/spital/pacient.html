@@ -1,0 +1,139 @@
+{% extends 'spital/layout.html' %}
+
+{% block content %}
+    <br>
+    {% if request.user.is_superuser %}
+        <button id="addPacientButton" type="button" class="btn btn-primary">Adauga</button>
+        <button id="removePacientButton" type="button" class="btn btn-danger">Sterge</button>
+        <br>
+        {% if mesaj_validare %}
+            <div class="alert alert-danger">
+                <strong>{{ mesaj_validare }}</strong>
+            </div>
+        {% endif %}
+        {% if form.errors %}
+            {% for field in form %}
+                {% for error in field.errors %}
+                    <div class="alert alert-danger">
+                        <strong>{{ error|escape }}</strong>
+                    </div>
+                {% endfor %}
+            {% endfor %}
+            {% for error in form.non_field_errors %}
+                <div class="alert alert-danger">
+                    <strong>{{ error|escape }}</strong>
+                </div>
+            {% endfor %}
+        {% endif %}
+        <br>
+        <form id="addPacient" action="{% url 'pacienti' %}" method="post">
+            {% csrf_token %}
+            <div class="form-group">
+                {% for field in form %}
+                    <div class="form-group">
+                        {{ field.label_tag }}
+                        {{ field }}
+                    </div>
+                {% endfor %}
+            </div>
+            <button id="submitPacient" type="submit" class="btn btn-primary">Trimite</button>
+            <button id="closeform" type="button" class="btn btn-dark">Inchide</button>
+        </form>
+    {% endif %}
+    <br>
+    <table class="table">
+        <thead class="thead-dark">
+        <tr>
+            <th scope="col">#</th>
+            <th scope="col">Nume</th>
+            <th scope="col">Prenume</th>
+            <th scope="col">CNP</th>
+            <th scope="col">Adresa</th>
+            <th scope="col">Asigurare</th>
+            {% if request.user.is_superuser %}
+                <th scope="col">Selecteaza</th>
+                <th scope="col">Modificare</th>
+            {% endif %}
+        </tr>
+        </thead>
+        <tbody>
+        {% for pacient in pacienti %}
+            <tr id="{{ pacient.pacientid }}">
+                <th scope="row">{{ forloop.counter }}</th>
+                <td>{{ pacient.numepacient }}</td>
+                <td>{{ pacient.prenumepacient }}</td>
+                <td>{{ pacient.cnp }}</td>
+                <td>{{ pacient.adresa }}</td>
+                <td>{{ pacient.asigurare }}</td>
+                {% if request.user.is_superuser %}
+                    <td><input type="checkbox"/></td>
+                    <td><a href="/modificaPacient/{{ pacient.pacientid }}">Modifica</a></td>
+                {% endif %}
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+    <br>
+    <div class="pagination">
+    <span class="step-links">
+
+        {% if pacienti.has_previous %}
+            <button type="button" class="btn btn-outline-dark"><a href="?page=1">&laquo; Prima pagina</a></button>
+            <button type="button" class="btn btn-outline-dark"><a
+                    href="?page={{ pacienti.previous_page_number }}">Inapoi</a></button>
+        {% endif %}
+
+        <span class="current">
+            Pagina {{ pacienti.number }} din {{ pacienti.paginator.num_pages }}.
+        </span>
+
+        {% if pacienti.has_next %}
+            <button type="button" class="btn btn-outline-dark"><a
+                    href="?page={{ pacienti.next_page_number }}">Inainte</a></button>
+            <button type="button" class="btn btn-outline-dark"><a href="?page={{ pacienti.paginator.num_pages }}">Ultima pagina &raquo;</a></button>
+        {% endif %}
+    </span>
+    </div>
+
+
+    <script>
+        jQuery('#pacient').addClass('active');
+        $("#addPacientButton").click(
+            function () {
+                $("#addPacient").show(500);
+            }
+        );
+        $("#closeform").click(
+            function () {
+                $("#addPacient").hide(500);
+            }
+        );
+        {#Apasand pe rand bifeaza casuta#}
+        $(document).ready(function () {
+            $('.table tr').click(function (event) {
+                if (event.target.type !== 'checkbox') {
+                    $(':checkbox', this).trigger('click');
+                }
+            });
+        });
+        $('#removePacientButton').click(function () {
+            const lista = [];
+            const Url = 'http://127.0.0.1:8000/removePacient';
+            $('.table tr').filter(':has(:checkbox:checked)').each(function () {
+                lista.push(this.id);
+                console.log(lista);
+            });
+            const data = {
+                csrfmiddlewaretoken: document.getElementsByName('csrfmiddlewaretoken')[0].value,
+                listaID: lista,
+            };
+            if (lista.length > 0) {
+                $.post(Url, data, function (data, status) {
+                    console.log('${data} and status is ${status}');
+                    window.location.replace("");
+                });
+            }
+        });
+    </script>
+
+{% endblock %}

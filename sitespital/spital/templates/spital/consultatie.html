@@ -1,0 +1,148 @@
+{% extends 'spital/layout.html' %}
+
+{% block content %}
+    {% if err %}
+        <div class="alert alert-danger">
+            <strong>{{ err|escape }}</strong>
+        </div>
+    {% endif %}
+    <br>
+    {% if request.user.is_superuser %}
+        <button id="addConsultatieButton" type="button" class="btn btn-primary">Adauga</button>
+        <button id="removeConsultatieButton" type="button" class="btn btn-danger">Sterge</button>
+        <br>
+        {% if form.errors %}
+            {% for field in form %}
+                {% for error in field.errors %}
+                    <div class="alert alert-danger">
+                        <strong>{{ error|escape }}</strong>
+                    </div>
+                {% endfor %}
+            {% endfor %}
+            {% for error in form.non_field_errors %}
+                <div class="alert alert-danger">
+                    <strong>{{ error|escape }}</strong>
+                </div>
+            {% endfor %}
+        {% endif %}
+        <br>
+        <form id="addConsultatie" action="{% url 'consultatie' %}" method="post">
+            {% csrf_token %}
+            <div class="form-group">
+                {% for field in form %}
+                    <div class="form-group">
+                        {{ field.label_tag }}
+                        {{ field }}
+                    </div>
+                {% endfor %}
+            </div>
+            <button id="submitPacient" type="submit" class="btn btn-primary">Trimite</button>
+            <button id="closeform" type="button" class="btn btn-dark">Inchide</button>
+        </form>
+    {% endif %}
+    <br>
+    <table class="table">
+        <thead class="thead-dark">
+        <tr>
+            <th scope="col">#</th>
+            <th scope="col">Nume Medic</th>
+            <th scope="col">Prenume Medic</th>
+            <th scope="col">Specializare</th>
+            <th scope="col">Nume Pacient</th>
+            <th scope="col">Prenume Pacient</th>
+            <th scope="col">CNP</th>
+            <th scope="col">Medicament</th>
+            <th scope="col">Data</th>
+            <th scope="col">Diagnostic</th>
+            <th scope="col">Doza medicament</th>
+            {% if request.user.is_superuser %}
+                <th scope="col">Selecteaza</th>
+                <th scope="col">Modificare</th>
+            {% endif %}
+        </tr>
+        </thead>
+        <tbody>
+        {% for consultatie in consultatii %}
+            <tr id="{{ consultatie.idconsultatie }}">
+                <th scope="row">{{ forloop.counter }}</th>
+                <td>{{ consultatie.medicid.numemedic }}</td>
+                <td>{{ consultatie.medicid.prenumemedic }}</td>
+                <td>{{ consultatie.medicid.specializare }}</td>
+                <td>{{ consultatie.pacientid.numepacient }}</td>
+                <td>{{ consultatie.pacientid.prenumepacient }}</td>
+                <td>{{ consultatie.pacientid.cnp }}</td>
+                <td>{{ consultatie.medicamentid.denumire }}</td>
+                <td>{{ consultatie.data }}</td>
+                <td>{{ consultatie.diagnostic }}</td>
+                <td>{{ consultatie.dozamedicament }}</td>
+                {% if request.user.is_superuser %}
+                    <td><input type="checkbox"/></td>
+                    <td><a href="/modificaConsultatie/{{ consultatie.idconsultatie }}">Modifica</a></td>
+                {% endif %}
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+    <br>
+    <div class="pagination">
+    <span class="step-links">
+
+        {% if consultatii.has_previous %}
+            <button type="button" class="btn btn-outline-dark"><a href="?page=1">&laquo; Prima pagina</a></button>
+            <button type="button" class="btn btn-outline-dark"><a
+                    href="?page={{ consultatii.previous_page_number }}">Inapoi</a></button>
+        {% endif %}
+
+        <span class="current">
+            Pagina {{ consultatii.number }} din {{ consultatii.paginator.num_pages }}.
+        </span>
+
+        {% if consultatii.has_next %}
+            <button type="button" class="btn btn-outline-dark"><a
+                    href="?page={{ consultatii.next_page_number }}">Inainte</a></button>
+            <button type="button" class="btn btn-outline-dark"><a href="?page={{ consultatii.paginator.num_pages }}">Ultima pagina &raquo;</a></button>
+        {% endif %}
+    </span>
+    </div>
+
+    <script>
+        jQuery('#consultatie').addClass('active');
+        $("#addConsultatieButton").click(
+            function () {
+                $("#addConsultatie").show(500);
+            }
+        );
+        $("#closeform").click(
+            function () {
+                $("#addConsultatie").hide(500);
+            }
+        );
+
+        {#Apasand pe rand bifeaza casuta#}
+        $(document).ready(function () {
+            $('.table tr').click(function (event) {
+                if (event.target.type !== 'checkbox') {
+                    $(':checkbox', this).trigger('click');
+                }
+            });
+        });
+
+        $('#removeConsultatieButton').click(function () {
+            const lista = [];
+            const Url = 'http://127.0.0.1:8000/removeConsultatie';
+            $('.table tr').filter(':has(:checkbox:checked)').each(function () {
+                lista.push(this.id);
+                console.log(lista);
+            });
+            const data = {
+                csrfmiddlewaretoken: document.getElementsByName('csrfmiddlewaretoken')[0].value,
+                listaID: lista,
+            };
+            if (lista.length > 0) {
+                $.post(Url, data, function (data, status) {
+                    window.location.replace("");
+                });
+            }
+        });
+    </script>
+{% endblock %}
